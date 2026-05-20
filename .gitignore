@@ -1,0 +1,12 @@
+node_modules
+.env
+.env.local
+.env.production
+.vercel
+dist
+uploads
+backend/uploads
+backend/.env
+frontend/.env
+frontend/.env.local
+frontend/.env.production
