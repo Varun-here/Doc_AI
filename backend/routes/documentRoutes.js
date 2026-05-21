@@ -2,16 +2,20 @@ const express = require("express");
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
+const os = require("os");
 
 const { extractTextFromFile } = require("../services/extractText");
 const { analyzeDocument } = require("../services/analyzeDocument");
 
 const router = express.Router();
 
-const uploadFolder = path.join(__dirname, "..", "uploads");
+const uploadFolder =
+  process.env.VERCEL === "1"
+    ? os.tmpdir()
+    : path.join(__dirname, "..", "uploads");
 
 if (!fs.existsSync(uploadFolder)) {
-  fs.mkdirSync(uploadFolder);
+  fs.mkdirSync(uploadFolder, { recursive: true });
 }
 
 const storage = multer.diskStorage({
@@ -19,7 +23,8 @@ const storage = multer.diskStorage({
     cb(null, uploadFolder);
   },
   filename: function (req, file, cb) {
-    const uniqueName = `${Date.now()}-${file.originalname}`;
+    const safeOriginalName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, "_");
+    const uniqueName = `${Date.now()}-${safeOriginalName}`;
     cb(null, uniqueName);
   },
 });
@@ -32,17 +37,17 @@ const allowedMimeTypes = [
 
 const fileFilter = (req, file, cb) => {
   if (allowedMimeTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error("Only PDF, DOCX, and TXT files are supported"), false);
+    return cb(null, true);
   }
+
+  return cb(new Error("Only PDF, DOCX, and TXT files are supported"), false);
 };
 
 const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024,
+    fileSize: 8 * 1024 * 1024,
   },
 });
 
@@ -65,7 +70,7 @@ router.post("/analyze", upload.single("document"), async (req, res) => {
       return res.status(400).json({
         success: false,
         error:
-          "Could not extract enough readable text from this document. Please upload a clearer PDF, DOCX, or TXT file.",
+          "Could not extract enough readable text from this document. Please upload a clearer text-based PDF, DOCX, or TXT file.",
       });
     }
 
@@ -75,6 +80,7 @@ router.post("/analyze", upload.single("document"), async (req, res) => {
       success: true,
       fileName: req.file.originalname,
       fileType: req.file.mimetype,
+      extractedText,
       extractedTextPreview: extractedText.slice(0, 1200),
       analysis,
     });

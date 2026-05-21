@@ -3,7 +3,7 @@ const OpenAI = require("openai");
 async function analyzeDocument(documentText) {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error(
-      "OPENAI_API_KEY is missing. Add it in Vercel Project Settings → Environment Variables and redeploy.",
+      "OPENAI_API_KEY is missing. Add it in Vercel Environment Variables and redeploy.",
     );
   }
 
@@ -11,7 +11,7 @@ async function analyzeDocument(documentText) {
     apiKey: process.env.OPENAI_API_KEY,
   });
 
-  const limitedText = documentText.slice(0, 14000);
+  const limitedText = documentText.slice(0, 12000);
 
   const prompt = `
 You are an AI document intelligence assistant.
@@ -28,25 +28,6 @@ If the document contains findings, analysis, sections, recommendations, or concl
 If the document contains blank fields, application details, form labels, checkboxes, or required inputs, classify it as Form.
 If the document is a formal message with sender, recipient, greeting, and closing, classify it as Letter.
 If none of these match clearly, classify it as Business Document or Other.
-
-Your tasks:
-1. Classify the document type.
-2. Give a confidence score from 0 to 100.
-3. Summarize the document clearly.
-4. Extract key information.
-5. Identify missing or incomplete details based on the document type.
-6. Identify risks, issues, or concerns.
-7. Recommend useful next steps.
-
-Supported document categories include:
-- Resume
-- Invoice
-- Contract
-- Report
-- Form
-- Letter
-- Business Document
-- Other
 
 Document text:
 ${limitedText}

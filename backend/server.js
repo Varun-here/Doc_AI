@@ -4,8 +4,6 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-const documentRoutes = require("./routes/documentRoutes");
-
 const app = express();
 
 const allowedOrigins = [
@@ -18,10 +16,10 @@ app.use(
   cors({
     origin: function (origin, callback) {
       if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
+        return callback(null, true);
       }
+
+      return callback(new Error("Not allowed by CORS"));
     },
     methods: ["GET", "POST", "OPTIONS"],
     credentials: true,
@@ -43,9 +41,11 @@ app.get("/health", (req, res) => {
     message: "Backend health check passed",
     status: "OK",
     hasOpenAIKey: Boolean(process.env.OPENAI_API_KEY),
+    nodeVersion: process.version,
   });
 });
 
+const documentRoutes = require("./routes/documentRoutes");
 app.use("/api/documents", documentRoutes);
 
 app.use((err, req, res, next) => {

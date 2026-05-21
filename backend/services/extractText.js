@@ -2,7 +2,6 @@ const fs = require("fs");
 const mammoth = require("mammoth");
 
 async function parsePdfBuffer(dataBuffer) {
-  // Works with older pdf-parse versions
   try {
     const pdfParseModule = require("pdf-parse");
     const pdfParse = pdfParseModule.default || pdfParseModule;
@@ -12,7 +11,6 @@ async function parsePdfBuffer(dataBuffer) {
       return pdfData.text || "";
     }
 
-    // Works with newer pdf-parse versions
     if (pdfParseModule.PDFParse) {
       const parser = new pdfParseModule.PDFParse({ data: dataBuffer });
       const result = await parser.getText();
@@ -28,7 +26,7 @@ async function parsePdfBuffer(dataBuffer) {
   }
 
   throw new Error(
-    "PDF text extraction failed. Please install pdf-parse@1.1.1 or try a DOCX/TXT file.",
+    "PDF text extraction failed. Please upload a text-based PDF, DOCX, or TXT file.",
   );
 }
 
