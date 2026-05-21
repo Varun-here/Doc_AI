@@ -1,13 +1,15 @@
 const OpenAI = require("openai");
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 async function analyzeDocument(documentText) {
   if (!process.env.OPENAI_API_KEY) {
-    throw new Error("OPENAI_API_KEY is missing in the backend .env file");
+    throw new Error(
+      "OPENAI_API_KEY is missing. Add it in Vercel Project Settings → Environment Variables and redeploy.",
+    );
   }
+
+  const client = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
 
   const limitedText = documentText.slice(0, 14000);
 
@@ -17,6 +19,15 @@ You are an AI document intelligence assistant.
 Analyze the document text and return ONLY valid JSON.
 Do not include markdown.
 Do not include explanations outside JSON.
+
+Important classification rule:
+Do not classify the document as Resume unless it is clearly a candidate resume, CV, or professional profile.
+If the document contains invoice number, billing details, payment terms, subtotal, tax, total, or amount due, classify it as Invoice.
+If the document contains agreement terms, parties, clauses, obligations, signatures, effective date, or legal language, classify it as Contract.
+If the document contains findings, analysis, sections, recommendations, or conclusions, classify it as Report.
+If the document contains blank fields, application details, form labels, checkboxes, or required inputs, classify it as Form.
+If the document is a formal message with sender, recipient, greeting, and closing, classify it as Letter.
+If none of these match clearly, classify it as Business Document or Other.
 
 Your tasks:
 1. Classify the document type.
